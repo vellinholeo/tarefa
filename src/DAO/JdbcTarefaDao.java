@@ -9,13 +9,24 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
 import model.Tarefa;
 
-public class JdbcTarefaDao {
-	private Connection connection;
+@Repository
+public class JdbcTarefaDao{
+	private final Connection connection;
 
-	public JdbcTarefaDao(Connection connection) throws SQLException {
-		this.connection = connection;
+	@Autowired
+	public JdbcTarefaDao(DataSource dataSource) {
+		try {
+			this.connection = dataSource.getConnection();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void adiciona(Tarefa tarefa) {
@@ -115,10 +126,10 @@ public class JdbcTarefaDao {
 		String sql = "update tarefas set finalizado=?, dataFinalizacao=? where id=?";
 		try {
 			Calendar c = Calendar.getInstance();
-			PreparedStatement stmt = connection.prepareStatement(sql);			
+			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setBoolean(1, true);
 			stmt.setLong(3, id);
-			stmt.setDate(2, new Date(c.getTimeInMillis()));			
+			stmt.setDate(2, new Date(c.getTimeInMillis()));
 			stmt.execute();
 			stmt.close();
 		} catch (SQLException e) {
